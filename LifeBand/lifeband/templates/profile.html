@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Profile – LifeBand{% endblock %}
+{% block page_title %}Patient Medical Profile{% endblock %}
+
+{% block content %}
+<div class="grid-cols-2-1">
+  <!-- LEFT: MEDICAL PROFILE FORM -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+        Clinical Information & Emergency Records
+      </h3>
+      <button type="button" class="btn btn-sm btn-outline-teal" onclick="loadDemoProfile()">
+        Load Sample Student Data
+      </button>
+    </div>
+
+    <form method="POST" action="{{ url_for('profile') }}">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="full_name" class="form-control" required placeholder="e.g. Rahul Sharma" value="{{ patient.full_name if patient else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Age *</label>
+          <input type="number" name="age" class="form-control" required min="1" max="120" placeholder="e.g. 21" value="{{ patient.age if patient else '21' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Blood Group *</label>
+          <select name="blood_group" class="form-control" required>
+            <option value="">Select</option>
+            {% for bg in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] %}
+              <option value="{{ bg }}" {% if patient and patient.blood_group == bg %}selected{% endif %}>{{ bg }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label">Allergies (Critical Contraindications)</label>
+          <input type="text" name="allergies" class="form-control" placeholder="e.g. Penicillin, Aspirin, Sulfa drugs" value="{{ patient.allergies if patient else '' }}">
+          <small style="color: var(--text-muted); font-size: 0.75rem;">AI Assistant will alert responders against contraindicated drugs.</small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Chronic Diseases / Pre-existing Illnesses</label>
+          <input type="text" name="chronic_diseases" class="form-control" placeholder="e.g. Mild Asthma, Type 1 Diabetes, Epilepsy" value="{{ patient.chronic_diseases if patient else '' }}">
+          <small style="color: var(--text-muted); font-size: 0.75rem;">Triggers special triage warnings (respiratory posture, sugar levels).</small>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label class="form-label">Previous Surgeries / Medical Implants</label>
+          <input type="text" name="previous_surgeries" class="form-control" placeholder="e.g. Appendectomy (2022), Knee replacement" value="{{ patient.previous_surgeries if patient else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current Medications</label>
+          <input type="text" name="current_medications" class="form-control" placeholder="e.g. Albuterol Inhaler (PRN), Metformin" value="{{ patient.current_medications if patient else '' }}">
+        </div>
+      </div>
+
+      <div style="background-color: var(--bg-tertiary); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 24px;">
+        <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+          Primary Emergency Contact Details
+        </h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Contact Person Name *</label>
+            <input type="text" name="emergency_contact_name" class="form-control" required placeholder="e.g. Priya Sharma (Mother)" value="{{ patient.emergency_contact_name if patient else '' }}">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Emergency Contact Phone *</label>
+            <input type="tel" name="emergency_contact_phone" class="form-control" required placeholder="e.g. +91 98765 43210" value="{{ patient.emergency_contact_phone if patient else '' }}">
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button type="submit" class="btn btn-primary">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+          </svg>
+          Save & Cryptographically Sign Profile
+        </button>
+        <a href="{{ url_for('medical_card') }}" class="btn btn-secondary">
+          View Emergency Medical Card
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- RIGHT: BLOCKCHAIN HASH & SECURITY OVERVIEW -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          Record Immutability
+        </h3>
+        <span class="badge badge-verified">SHA-256</span>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+        Every modification to this clinical profile calculates an immutable SHA-256 digest linked to the preceding version hash.
+      </p>
+
+      {% if chain %}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Latest Version Hash:</div>
+            <div class="hash-signature-pill" style="margin-top: 4px;">{{ chain[-1].current_hash }}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+            <span>Chain Length: <strong>{{ chain|length }} revisions</strong></span>
+            <span>Version: <strong>v{{ chain[-1].version }}</strong></span>
+          </div>
+        </div>
+        <div style="margin-top: 18px;">
+          <a href="{{ url_for('blockchain_view') }}" class="btn btn-sm btn-outline-teal" style="width: 100%;">
+            Inspect Blockchain Ledger
+          </a>
+        </div>
+      {% else %}
+        <div style="color: var(--text-muted); font-size: 0.85rem;">
+          No blockchain records created yet. Save a profile to mint Block #1 (Genesis).
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- QUICK VIVA NOTE -->
+    <div class="card" style="background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.2);">
+      <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--teal-primary); margin-bottom: 8px;">
+        Faculty Demonstration Tip
+      </h4>
+      <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+        Demonstrate how changing allergies or blood group creates a new cryptographic block (Version N+1). You can then go to the <strong>Blockchain Integrity</strong> tab to prove that raw SQL edits are immediately detected as tampering!
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

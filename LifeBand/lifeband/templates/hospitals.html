@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Hospital Finder & Haversine Proximity – LifeBand{% endblock %}
+{% block page_title %}Hospital Emergency Identification & Proximity Ranking{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">
+        Current Reference Location
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+        <span style="font-size: 1.1rem; font-weight: 700; color: #fff;" id="currentLocationName">
+          {{ default_location_name }}
+        </span>
+        <span class="badge badge-teal">
+          Lat: <span id="currentLatDisplay">{{ current_lat }}</span>, Lon: <span id="currentLonDisplay">{{ current_lon }}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- GEOLOCATION CONTROLS -->
+    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <select id="demoLocationSelect" class="form-control" style="width: auto; padding: 8px 12px; font-size: 0.85rem;">
+        <option value="">-- Switch Demo Campus Location --</option>
+        {% for loc in demo_locations %}
+          <option value="{{ loc.latitude }},{{ loc.longitude }}">{{ loc.name }}</option>
+        {% endfor %}
+      </select>
+
+      <button class="btn btn-sm btn-primary" onclick="requestLiveBrowserLocation()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Acquire Live GPS
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="grid-cols-2-1">
+  <!-- LEFT: HOSPITAL LIST -->
+  <div>
+    <div class="card-header" style="border: none; padding-bottom: 0; margin-bottom: 16px;">
+      <h3 class="card-title">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        </svg>
+        Ranked Healthcare Facilities (Distance Sorted)
+      </h3>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">{{ hospitals|length }} Facilities Monitored</span>
+    </div>
+
+    <div id="hospitalListContainer">
+      {% for h in hospitals %}
+        <div class="hospital-item {% if loop.first %}nearest{% endif %}">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h4 style="font-weight: 700; color: var(--text-primary); font-size: 1.05rem;">{{ h.name }}</h4>
+              {% if loop.first %}<span class="badge badge-teal">Closest Facility</span>{% endif %}
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">{{ h.address }}</p>
+            <div style="display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap;">
+              <span><strong>ICU Beds:</strong> {{ h.icu_beds_available }}</span>
+              <span><strong>Trauma Rating:</strong> {{ h.trauma_level }}</span>
+              <span><strong>Emergency:</strong> {{ h.emergency_availability }}</span>
+              <span><strong>Contact:</strong> {{ h.contact_phone }}</span>
+            </div>
+          </div>
+          <div style="text-align: right; margin-left: 20px;">
+            <div style="font-size: 1.4rem; font-weight: 800; color: var(--teal-primary); font-family: var(--font-mono);">
+              {{ h.distance_km }} km
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+              ETA ~{{ h.estimated_eta_mins }} mins
+            </div>
+            <button class="btn btn-sm btn-outline-teal" onclick="selectHospitalForEmergency({{ h.id }})">
+              Select Facility
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- RIGHT: MATHEMATICAL & CLINICAL EXPLANATIONS -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- HAVERSINE FORMULA MATHEMATICS CARD -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+          Haversine Formula Implementation
+        </h3>
+        <span class="badge badge-verified">Python Math</span>
+      </div>
+
+      <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+        <p style="margin-bottom: 10px;">
+          The Haversine formula determines the great-circle distance between two points on a sphere given their longitudes and latitudes:
+        </p>
+        <div style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.78rem; color: var(--teal-primary); margin-bottom: 12px; line-height: 1.5;">
+          a = sin²(Δφ/2) + cos(φ₁)·cos(φ₂)·sin²(Δλ/2)<br>
+          c = 2·atan2(√a, √(1−a))<br>
+          d = R · c &nbsp;(R = 6371.0 km)
+        </div>
+        <p>
+          <strong>Why not Euclidean distance?</strong> The Earth is an oblate spheroid. Planar Cartesian distance introduces up to 30% error at varying latitudes. Haversine provides &lt;0.5% error.
+        </p>
+      </div>
+    </div>
+
+    <!-- ETA ESTIMATION MODEL -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Ambulance Transit & ETA Model</h3>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+        <p style="margin-bottom: 10px;">
+          Transit time is dynamically calculated using average urban emergency vehicle speed (35 km/h) plus a 2-minute baseline triage and vehicle mobilization factor:
+        </p>
+        <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.78rem; color: #FCD34D;">
+          ETA (mins) = round((Distance_km / 35.0) * 60) + 2
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/geolocation.js') }}"></script>
+{% endblock %}

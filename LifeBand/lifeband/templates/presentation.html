@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Presentation & Viva Guide – LifeBand{% endblock %}
+{% block page_title %}College Faculty Presentation & Viva Defense Guide{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(15, 23, 42, 0.9) 100%); border-color: rgba(6, 182, 212, 0.3);">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+    <div>
+      <span class="badge badge-teal" style="margin-bottom: 6px;">B.TECH CSE (IoT & BLOCKCHAIN) ACADEMIC PROJECT</span>
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: #fff;">
+        LifeBand – System Demonstration & Viva Preparation
+      </h2>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px;">
+        Authoritative reference guide for live demonstration, architecture explanation, and technical defense in front of university evaluators.
+      </p>
+    </div>
+    <button class="btn btn-primary" onclick="loadDemoProfile()">
+      Reset Live Demonstration Baseline
+    </button>
+  </div>
+</div>
+
+<div class="grid-cols-2">
+  <!-- LEFT: 11-STEP DEMONSTRATION WORKFLOW -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        11-Step College Faculty Live Demonstration
+      </h3>
+      <span class="badge badge-verified">Demo Steps</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.88rem;">
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>1. Load Sample Patient Profile:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Click "Load Demo Patient" to seed patient "Rahul Sharma" (21, Blood: B+, Allergies: Penicillin & Aspirin, Chronic: Asthma).
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>2. View Emergency ID Card:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Navigate to <strong>Emergency ID Card</strong> to showcase high-contrast medical identification, allergy alerts, and one-tap emergency calling.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>3. Inspect Blockchain Genesis Block:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Go to <strong>Blockchain Integrity</strong> to show that saving the profile minted Block #1 with Genesis Previous Hash <code>0000...0000</code>.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>4. Simulate IoT Fall Detection:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Open <strong>Fall Detection</strong> tab, explain the 3-axis accelerometer sensor processing, and click <strong>Simulate Fall Impact</strong> to trigger the 10-second countdown and audio beeper.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>5. Auto-Escalation to Emergency SOS:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Let countdown expire (or click "Quick SOS") to show automated transition into Emergency Active state.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>6. Explain Haversine Distance Calculation:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Show how Python computes orthodromic distance across Earth's sphere to locate the nearest emergency trauma facility (e.g. St. Jude Emergency at ~0.85 km, ETA ~4m).
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>7. Demonstrate Condition-Aware AI Guidance:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Highlight that the AI Assistant explicitly warns responders <em>"DO NOT administer Aspirin"</em> because patient Rahul Sharma has an Aspirin allergy recorded!
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>8. Hospital Simulated Dispatch Telemetry:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Show the JSON pre-arrival notification payload prepared for the hospital triage team and inbound ambulance crew.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md);">
+        <strong>9. Resolve Emergency Incident:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Click "Mark Emergency Resolved" to log the event into history and return the system to standby.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md); border-left: 4px solid var(--rose-danger);">
+        <strong>10. Simulate Database Record Tampering:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Go to <strong>Blockchain Integrity</strong> and click <strong>Simulate Record Tampering</strong>. This modifies SQLite data without recalculating the hash.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-tertiary); padding: 12px 14px; border-radius: var(--radius-md); border-left: 4px solid var(--emerald-accent);">
+        <strong>11. Cryptographic Tamper Detection & Restoration:</strong>
+        <p style="color: var(--text-secondary); margin-top: 4px;">
+          Show the verification failure banner, highlight the red tampered block, and then click <strong>Restore & Re-sign Ledger</strong> to fix it.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: VIVA QUESTIONS & ANSWERS (CSE / IOT / BLOCKCHAIN) -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Faculty Viva Defense Questions & Answers
+      </h3>
+      <span class="badge badge-teal">Q&A Sheet</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.86rem; line-height: 1.6;">
+      <div>
+        <div style="font-weight: 700; color: #fff;">
+          Q1: How does the Fall Detection algorithm work? (IoT Aspect)
+        </div>
+        <p style="color: var(--text-secondary); margin-top: 3px;">
+          <strong>Answer:</strong> It reads linear acceleration along three spatial orthogonal axes ($a_x, a_y, a_z$) from the device accelerometer via the DeviceMotion API. It computes the Euclidean vector magnitude $|a| = \sqrt{a_x^2 + a_y^2 + a_z^2}$. When $|a|$ spikes above a calibrated impact threshold (25.0 m/s²) followed by sudden immobility, an impact is inferred.
+        </p>
+      </div>
+
+      <div>
+        <div style="font-weight: 700; color: #fff;">
+          Q2: How does the blockchain hash chain protect medical records? (Blockchain Aspect)
+        </div>
+        <p style="color: var(--text-secondary); margin-top: 3px;">
+          <strong>Answer:</strong> Each record revision includes the SHA-256 hash of its predecessor. Because SHA-256 is collision-resistant and possesses the avalanche effect, if an unauthorized actor alters an allergy or blood group directly in SQLite, recomputing the hash produces a mismatch with the stored hash and breaks all subsequent links.
+        </p>
+      </div>
+
+      <div>
+        <div style="font-weight: 700; color: #fff;">
+          Q3: Why use the Haversine formula instead of Euclidean distance? (GPS / Math Aspect)
+        </div>
+        <p style="color: var(--text-secondary); margin-top: 3px;">
+          <strong>Answer:</strong> Euclidean planar distance ($d = \sqrt{\Delta x^2 + \Delta y^2}$) assumes a flat Cartesian plane. Because the Earth is spherical, lines of longitude converge at the poles. The spherical Haversine formula calculates the exact great-circle distance on a sphere of radius 6,371 km, ensuring high accuracy.
+        </p>
+      </div>
+
+      <div>
+        <div style="font-weight: 700; color: #fff;">
+          Q4: Why use deterministic Python rules for AI First-Aid instead of pure LLM prompts?
+        </div>
+        <p style="color: var(--text-secondary); margin-top: 3px;">
+          <strong>Answer:</strong> In emergency triage, hallucination or latency is dangerous. Deterministic clinical logic guarantees zero hallucination, strict contraindication filtering (e.g. preventing Aspirin administration to an allergic patient), and runs completely offline without requiring paid API keys or cloud dependencies.
+        </p>
+      </div>
+
+      <div>
+        <div style="font-weight: 700; color: #fff;">
+          Q5: What are the current limitations and future scope of LifeBand?
+        </div>
+        <p style="color: var(--text-secondary); margin-top: 3px;">
+          <strong>Answer:</strong> Currently, alerts are simulated within SQLite and local hash chains. Future enhancements include: (1) Bluetooth Low Energy (BLE) smart band integration, (2) GSM/SMS hardware modules for cellular fail-safe alerts without internet, and (3) Smart Contract anchoring on Polygon/Ethereum for decentralized cross-hospital interoperability.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

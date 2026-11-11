@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Blockchain Medical Record Integrity – LifeBand{% endblock %}
+{% block page_title %}Blockchain-Style SHA-256 Medical Record Integrity{% endblock %}
+
+{% block content %}
+<!-- VERIFICATION AUDIT STATUS BANNER -->
+<div class="card" style="margin-bottom: 24px; border-left: 6px solid {% if audit.is_valid %}var(--emerald-accent){% else %}var(--rose-danger){% endif %};">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="badge {% if audit.is_valid %}badge-verified{% else %}badge-tampered{% endif %}" style="font-size: 0.95rem; padding: 6px 14px;">
+          {% if audit.is_valid %}
+            CHAIN INTEGRITY VERIFIED (IN-SYNC)
+          {% else %}
+            TAMPER DETECTED AT BLOCK V{{ audit.tampered_at_version }}!
+          {% endif %}
+        </span>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+          Total Chain Length: <strong>{{ audit.total_blocks }} Blocks</strong>
+        </span>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 8px;">
+        {{ audit.message }}
+      </p>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="btn btn-sm btn-primary" onclick="runBlockchainVerification()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        Re-verify Cryptographic Hashes
+      </button>
+
+      {% if audit.is_valid %}
+        <button class="btn btn-sm btn-danger" onclick="simulateRecordTampering()">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          Simulate Record Tampering
+        </button>
+      {% else %}
+        <button class="btn btn-sm btn-primary" style="background: var(--emerald-accent);" onclick="restoreBlockchainChain()">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Restore & Re-sign Ledger
+        </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="grid-cols-2-1">
+  <!-- LEFT: BLOCKCHAIN LEDGER EXPLORER -->
+  <div>
+    <div class="card-header" style="border: none; padding-bottom: 0; margin-bottom: 16px;">
+      <h3 class="card-title">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+        </svg>
+        Sequential Revision Blocks (Ledger Trail)
+      </h3>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">Cryptographically Chained</span>
+    </div>
+
+    <div class="blockchain-chain">
+      {% for block in audit.audit_blocks %}
+        <div class="block-item {% if block.is_valid %}intact{% else %}tampered{% endif %}">
+          <div class="block-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-weight: 700; color: #fff; font-size: 1.05rem;">
+                Block Version #{{ block.version }}
+                {% if block.version == 1 %}<span class="badge badge-teal" style="margin-left: 6px;">GENESIS BLOCK</span>{% endif %}
+              </span>
+              {% if block.is_valid %}
+                <span class="badge badge-verified">VALID</span>
+              {% else %}
+                <span class="badge badge-tampered">HASH MISMATCH / TAMPERED</span>
+              {% endif %}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+              {{ block.timestamp }}
+            </div>
+          </div>
+
+          <!-- STORED VS RECALCULATED HASHES -->
+          <div style="margin-bottom: 14px;">
+            <div class="hash-row">
+              <span class="hash-label">Previous Hash:</span>
+              <span class="hash-code">{{ block.stored_previous_hash }}</span>
+            </div>
+            <div class="hash-row">
+              <span class="hash-label">Current Hash:</span>
+              <span class="hash-code">{{ block.stored_current_hash }}</span>
+            </div>
+            {% if not block.hash_matches %}
+              <div class="hash-row" style="color: #F87171;">
+                <span class="hash-label">Recomputed Hash:</span>
+                <span class="hash-code" style="background: rgba(239, 68, 68, 0.25); color: #FCA5A5;">
+                  {{ block.recalculated_hash }}
+                </span>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- BLOCK PAYLOAD PREVIEW -->
+          <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: var(--radius-sm); font-size: 0.82rem;">
+            <div style="font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">Payload Snapshot:</div>
+            <div style="color: var(--text-primary);">
+              <strong>Patient:</strong> {{ block.patient_data.full_name }} &bull;
+              <strong>Blood:</strong> <span class="badge badge-blood" style="font-size: 0.75rem; padding: 2px 6px;">{{ block.patient_data.blood_group }}</span> &bull;
+              <strong>Allergies:</strong> <span style="color: #FCA5A5;">{{ block.patient_data.allergies or 'None' }}</span> &bull;
+              <strong>Contact:</strong> {{ block.patient_data.emergency_contact_phone }}
+            </div>
+          </div>
+        </div>
+
+        {% if not loop.last %}
+          <div class="block-connector">&darr; Chained via SHA-256 Link &darr;</div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- RIGHT: BLOCKCHAIN VIVA & TECHNICAL EXPLANATION -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- CRYPTOGRAPHIC FORMULA CARD -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          Block Hashing Architecture
+        </h3>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+        <p style="margin-bottom: 8px;">
+          Each revision block is cryptographically sealed using SHA-256 with the following formula:
+        </p>
+        <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.75rem; color: var(--teal-primary); margin-bottom: 10px;">
+          Hash = SHA256( Version || Timestamp || CanonicalJSON(Profile) || PreviousHash )
+        </div>
+        <p>
+          Because SHA-256 exhibits the <strong>Avalanche Effect</strong>, even modifying a single character (e.g. changing blood group from B+ to O-) completely scrambles the 256-bit digest, immediately breaking chain linkage.
+        </p>
+      </div>
+    </div>
+
+    <!-- NOTICE: LOCAL HASH CHAIN VS DECENTRALIZED CONSENSUS -->
+    <div class="card" style="background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.2);">
+      <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--teal-primary); margin-bottom: 8px;">
+        Academic Architecture Viva Note
+      </h4>
+      <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;">
+        <p style="margin-bottom: 8px;">
+          <strong>Educational Prototype Notice:</strong> LifeBand implements an educational linear blockchain hash chain in Python.
+        </p>
+        <p style="margin-bottom: 8px;">
+          <strong>Immutability vs Consensus:</strong> In this prototype, data integrity and tamper detection are guaranteed mathematically via SHA-256 forward-chaining.
+        </p>
+        <p>
+          <strong>Future Scalability:</strong> In a production hospital consortium, these blocks can be anchored to Ethereum, Hyperledger Fabric, or Polygon smart contracts via decentralized Proof-of-Authority consensus.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/blockchain.js') }}"></script>
+{% endblock %}

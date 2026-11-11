@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Fall Detection Simulation (IoT Layer) – LifeBand{% endblock %}
+{% block page_title %}IoT Fall Detection & IMU Sensor Processing{% endblock %}
+
+{% block content %}
+<div class="grid-cols-2-1">
+  <!-- LEFT: SENSOR TELEMETRY & CONTROLS -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- SENSOR METER CARD -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          Inertial Measurement Unit (IMU) Accelerometer Telemetry
+        </h3>
+        <span class="badge badge-teal" id="sensorStatusBadge">Monitoring Accelerometer</span>
+      </div>
+
+      <div class="sensor-meter-container">
+        <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">
+          Resultant Vector Acceleration Magnitude
+        </div>
+        <div class="g-force-value" id="valTotalG">9.8</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); font-family: var(--font-mono);">
+          Formula: |a| = √(ax² + ay² + az²) [m/s²]
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px;">
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: var(--radius-md);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">X-Axis (Lateral)</div>
+            <div style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700; color: #fff;" id="valAccX">0.00</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: var(--radius-md);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Y-Axis (Longitudinal)</div>
+            <div style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700; color: #fff;" id="valAccY">0.00</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: var(--radius-md);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Z-Axis (Vertical)</div>
+            <div style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700; color: #fff;" id="valAccZ">9.81</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SENSOR PERMISSION BUTTON (MOBILE iOS / ANDROID) -->
+      <div style="text-align: center; margin-bottom: 16px;">
+        <button id="btnRequestSensorPerm" class="btn btn-sm btn-secondary" style="display: none;" onclick="requestSensorAccess()">
+          Authorize Mobile Accelerometer Sensors
+        </button>
+      </div>
+
+      <!-- SIMULATION CONTROLS -->
+      <div style="background: var(--bg-tertiary); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <h4 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 8px;">
+          Live Demonstration Impact Simulator
+        </h4>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 16px;">
+          Use this simulated impact trigger when demonstrating the project on a laptop or desktop without physical motion sensors.
+        </p>
+
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+          <button class="btn btn-danger btn-lg" onclick="simulateFallImpact()">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            Simulate Sudden Fall Impact (34.8 m/s²)
+          </button>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">
+            Triggers audible 10-second countdown with false-alarm cancellation.
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: THRESHOLD CALIBRATION & IOT EXPLANATION -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- CALIBRATION SLIDER -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Impact Threshold Calibration</h3>
+        <span class="badge badge-amber" id="thresholdValue">{{ default_threshold }} m/s²</span>
+      </div>
+
+      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 16px;">
+        Calibrate sensitivity to filter out normal walking/running vs severe impact deceleration:
+      </p>
+
+      <div style="margin-bottom: 20px;">
+        <input type="range" id="thresholdSlider" min="15" max="40" step="0.5" value="{{ default_threshold }}" style="width: 100%; accent-color: var(--teal-primary);">
+        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+          <span>15.0 m/s² (Sensitive)</span>
+          <span>25.0 m/s² (Default)</span>
+          <span>40.0 m/s² (Severe)</span>
+        </div>
+      </div>
+
+      <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+        <strong>Detection Heuristic:</strong> Total acceleration must exceed threshold followed by subsequent non-movement. This avoids false positives during sports activities.
+      </div>
+    </div>
+
+    <!-- IoT VIVA EXPLANATION -->
+    <div class="card" style="background: rgba(6, 182, 212, 0.05); border-color: rgba(6, 182, 212, 0.2);">
+      <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--teal-primary); margin-bottom: 8px;">
+        IoT Viva Explanation
+      </h4>
+      <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;">
+        <p style="margin-bottom: 8px;">
+          <strong>Sensor Hardware:</strong> Smartphone 3-Axis MEMS Accelerometer (Micro-Electro-Mechanical Systems).
+        </p>
+        <p style="margin-bottom: 8px;">
+          <strong>Sampling Pipeline:</strong> The W3C `DeviceMotion` event queries hardware sensors at 50-60 Hz.
+        </p>
+        <p>
+          <strong>Fail-safe Architecture:</strong> In case of unconsciousness, if the patient cannot tap "I'm OK", the 10-second countdown expires and automatically escalates to Emergency SOS.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTDOWN OVERLAY MODAL -->
+<div class="countdown-overlay" id="fallCountdownOverlay">
+  <div class="countdown-circle" id="countdownNumber">10</div>
+  <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px;">
+    FALL DETECTED!
+  </h2>
+  <p style="font-size: 1rem; color: #FCA5A5; margin-bottom: 8px;" id="fallReasonText">
+    Sudden impact shock detected.
+  </p>
+  <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 480px; text-align: center; margin-bottom: 24px;">
+    If you are uninjured, press <strong>I AM OK</strong> to cancel. Emergency services and nearest trauma facility will be notified when timer reaches 0.
+  </p>
+  <button class="btn btn-primary btn-lg" onclick="cancelFallCountdown()" style="background: var(--emerald-accent); min-width: 220px; font-size: 1.1rem;">
+    I AM OK (CANCEL SOS)
+  </button>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/fall_detection.js') }}"></script>
+{% endblock %}
